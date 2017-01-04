@@ -98,6 +98,7 @@ namespace SURFACE_CLIMBING_GA_2
 	{
 		gene m;
 		gene f;
+		gene shared;
 
 		float fitness;
 	};
@@ -171,6 +172,14 @@ namespace SURFACE_CLIMBING_GA_2
 		return PEAKS_SURFACE::computePeaks(y, x);
 	}
 
+	float GeneHeight_Shared(gene& g)
+	{
+		float x = ((float)(g.x)) / 10000;
+		float y = ((float)(g.y)) / 10000;
+
+		return PEAKS_SURFACE::computePeaks(-x, -y);
+	}
+
 	int int_crossoverSinglePoint(int dnaA, int dnaB)
 	{
 		int cross_point = RandomInt(0, 32);
@@ -202,6 +211,7 @@ namespace SURFACE_CLIMBING_GA_2
 	int best_index_females = 0;
 	float sumFitness_males = 0.0f;
 	float sumFitness_females = 0.0f;
+	float same_parent_probability = 0.5f;
 
 
 	int int_mutate(int x)
@@ -241,12 +251,15 @@ namespace SURFACE_CLIMBING_GA_2
 			{
 				GeneMutate(males[i].m);
 				GeneMutate(males[i].f);
+				GeneMutate(males[i].shared);
 			}
-			if (i != best_index_males)
+			if (i != best_index_females)
 			{
 				GeneMutate(females[i].m);
 				GeneMutate(females[i].f);
+				GeneMutate(females[i].shared);
 			}
+
 		}
 	}
 
@@ -260,11 +273,17 @@ namespace SURFACE_CLIMBING_GA_2
 			males[i].f.x = (int)(RandomFloat(0, 60000.0) - 30000.0);
 			males[i].f.y = (int)(RandomFloat(0, 60000.0) - 30000.0);
 
+			males[i].shared.x = (int)(RandomFloat(0, 60000.0) - 30000.0);
+			males[i].shared.y = (int)(RandomFloat(0, 60000.0) - 30000.0);
+
 			females[i].m.x = (int)(RandomFloat(0, 60000.0) - 30000.0);
 			females[i].m.y = (int)(RandomFloat(0, 60000.0) - 30000.0);
 
 			females[i].f.x = (int)(RandomFloat(0, 60000.0) - 30000.0);
 			females[i].f.y = (int)(RandomFloat(0, 60000.0) - 30000.0);
+
+			females[i].shared.x = (int)(RandomFloat(0, 60000.0) - 30000.0);
+			females[i].shared.y = (int)(RandomFloat(0, 60000.0) - 30000.0);
 			//population[i].female.x = RandomFloat(0, 6.0) + surface_min_x;
 			//population[i].female.y = RandomFloat(0, 6.0) + surface_min_y;
 		}
@@ -281,14 +300,14 @@ namespace SURFACE_CLIMBING_GA_2
 		sumFitness_females = 0.0f;
 		for (int i = 0; i < males.size(); i++)
 		{
-			males[i].fitness = GeneHeight_Males(males[i].m) + GeneHeight_Females(males[i].f);
-			females[i].fitness = GeneHeight_Males(females[i].m) + GeneHeight_Females(females[i].f);
+			males[i].fitness = GeneHeight_Males(males[i].m) + GeneHeight_Shared(males[i].shared);
+			females[i].fitness = GeneHeight_Females(females[i].f) + GeneHeight_Shared(females[i].shared);
 
-			if (!GeneInBounds(males[i].m))
+			if (!GeneInBounds(males[i].m) || !GeneInBounds(males[i].shared))
 			{
 				males[i].fitness = 0.0f;
 			}
-			if (!GeneInBounds(females[i].f))
+			if (!GeneInBounds(females[i].f) || !GeneInBounds(females[i].shared))
 			{
 				females[i].fitness = 0.0f;
 			}
@@ -345,10 +364,12 @@ namespace SURFACE_CLIMBING_GA_2
 	{
 		CopyPopulation(males, mating_pool_males);
 		CopyPopulation(females, mating_pool_females);
-		bool same_parent = true;
+		//bool same_parent = false;
+		
 		for (int i = 0; i < males.size(); i++)
 		{
-			if (!same_parent)
+			float same_parent = 0.6;// RandomFloat(0.0, 1.0);
+			if (same_parent > same_parent_probability)
 			{
 				if (i != best_index_males)
 				{
@@ -356,7 +377,7 @@ namespace SURFACE_CLIMBING_GA_2
 					int m_b = ChooseParent(-1, mating_pool_females, sumFitness_females, best_index_females);
 					GeneCrossOverSinglePoint(males[i].m, mating_pool_males[m_a].m, mating_pool_females[m_b].m);
 					GeneCrossOverSinglePoint(males[i].f, mating_pool_males[m_a].f, mating_pool_females[m_b].f);
-
+					GeneCrossOverSinglePoint(males[i].shared, mating_pool_males[m_a].shared, mating_pool_females[m_b].shared);
 				}
 
 				if (i != best_index_females)
@@ -365,6 +386,7 @@ namespace SURFACE_CLIMBING_GA_2
 					int f_b = ChooseParent(i, mating_pool_females, sumFitness_females, best_index_females);
 					GeneCrossOverSinglePoint(females[i].m, mating_pool_males[f_a].m, mating_pool_females[f_b].m);
 					GeneCrossOverSinglePoint(females[i].f, mating_pool_males[f_a].f, mating_pool_females[f_b].f);
+					GeneCrossOverSinglePoint(females[i].shared, mating_pool_males[f_a].shared, mating_pool_females[f_b].shared);
 				}
 			}
 			else
@@ -374,19 +396,20 @@ namespace SURFACE_CLIMBING_GA_2
 				int m_a = ChooseParent(i, mating_pool_males, sumFitness_males, best_index_males);
 				int m_b = ChooseParent(i, mating_pool_females, sumFitness_females, best_index_females);
 
-				if (i != best_index_males)
+				//if (i != best_index_males)
 				{
 
 					GeneCrossOverSinglePoint(males[i].m, mating_pool_males[m_a].m, mating_pool_females[m_b].m);
 					GeneCrossOverSinglePoint(males[i].f, mating_pool_males[m_a].f, mating_pool_females[m_b].f);
-
+					GeneCrossOverSinglePoint(males[i].shared, mating_pool_males[m_a].shared, mating_pool_females[m_b].shared);
 				}
 
-				if (i != best_index_females)
+				//if (i != best_index_females)
 				{
 
 					GeneCrossOverSinglePoint(females[i].m, mating_pool_males[m_a].m, mating_pool_females[m_b].m);
 					GeneCrossOverSinglePoint(females[i].f, mating_pool_males[m_a].f, mating_pool_females[m_b].f);
+					GeneCrossOverSinglePoint(females[i].shared, mating_pool_males[m_a].shared, mating_pool_females[m_b].shared);
 				}
 			}
 
@@ -412,7 +435,7 @@ namespace SURFACE_CLIMBING_GA_2
 		cout << "=============================" << endl;
 		float H = PEAKS_SURFACE::computePeaks((float)males[best_index_males].m.x / 10000, (float)males[best_index_males].m.y / 10000);
 
-		cout << "Best Index: " << best_index_males << ", fitness: " << males[best_index_males].fitness << endl;
+		cout << "Best Index: " << best_index_males << ", H: " << H << endl;
 		cout << "x: " << (float)males[best_index_males].m.x / 10000 << ", y: " << (float)males[best_index_males].m.y / 10000 << endl;
 
 		DNA_OUTPUT::print_dna(males[best_index_males].m.x);
@@ -423,13 +446,20 @@ namespace SURFACE_CLIMBING_GA_2
 		cout << "NOW RUNNING THE BEST MALES GENES THROUGH THE FEMALE FUNCTION" << endl;
 		H = GeneHeight_Females(males[best_index_males].f);
 		cout << "H: " << H << ", x: " << (float)males[best_index_males].f.x / 10000 << ", y: " << (float)males[best_index_males].f.y / 10000 << endl;
+		
+		cout << "NOW RUNNING THE BEST MALES GENES THROUGH THE SHARED" << endl;
+		H = GeneHeight_Shared(males[best_index_males].shared);
+		cout << "H: " << H << ", x: " << (float)males[best_index_males].shared.x / 10000 << ", y: " << (float)males[best_index_males].shared.y / 10000 << endl;
+
+		
+		
 		cout << "=============================" << endl;
 
 
 
+		H = GeneHeight_Females(females[best_index_females].f);
 
-
-		cout << "Best Index: " << best_index_females << ", fitness: " << females[best_index_females].fitness << endl;
+		cout << "Best Index: " << best_index_females << ", fitness: " << H << endl;
 		cout << "x: " << (float)females[best_index_females].f.x / 10000 << ", y: " << (float)females[best_index_females].f.y / 10000 << endl;
 
 		DNA_OUTPUT::print_dna(females[best_index_females].f.x);
@@ -440,6 +470,10 @@ namespace SURFACE_CLIMBING_GA_2
 		cout << "NOW RUNNING THE BEST FEMALES GENES THROUGH THE MALE FUNCTION" << endl;
 		H = GeneHeight_Males(females[best_index_females].m);
 		cout << "H: " << H << ", x: " << (float)females[best_index_females].m.x / 10000 << ", y: " << (float)females[best_index_females].m.y / 10000 << endl;
+
+		cout << "NOW RUNNING THE BEST FEMALES GENES THROUGH THE SHARED FUNCTION" << endl;
+		H = GeneHeight_Shared(females[best_index_females].shared);
+		cout << "H: " << H << ", x: " << (float)females[best_index_females].shared.x / 10000 << ", y: " << (float)females[best_index_females].shared.y / 10000 << endl;
 
 		cout << "=============================" << endl;
 		cout << " SIMULATION COMPLETE" << endl;
@@ -472,7 +506,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	SURFACE_CLIMBING_GA_2::CreatePopulation(100);
 	SURFACE_CLIMBING_GA_2::RamdomizeInitialPopulation();
-	for (int epoch = 0; epoch < 1000; epoch++)
+	for (int epoch = 0; epoch < 7000; epoch++)
 	{
 		//cout << "Epoch: " << epoch << endl;
 		SURFACE_CLIMBING_GA_2::UpdateSimulation();

@@ -10,4 +10,8 @@ The individuals are awarded greater breeding rights if they climb highest up the
 surface - but there is one catch - the females are walking on a different hill
 surface to the males.
 
+There are also genes shared between the males and females, for example these could be
+genes for health, disease immunity, etc, they are also a seperate surface, but they
+are summed into the fitness for each gender.
+
 

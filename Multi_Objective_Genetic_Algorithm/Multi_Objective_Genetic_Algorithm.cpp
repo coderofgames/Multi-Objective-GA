@@ -671,8 +671,8 @@ namespace BIT_BUFFER
 				numBits = dataSize;
 
 			m_numBits = numBits;
-			m_sizeInInts = (numBits / dataSize) +1; // need to add one int
-			//if (numBits % dataSize != 0) m_sizeInInts++;
+			m_sizeInInts = (numBits / dataSize);// +1; // need to add one int
+			if (numBits % dataSize != 0) m_sizeInInts++;
 
 			m_data = new int[(m_sizeInInts)];
 
@@ -984,7 +984,6 @@ namespace MICRO_BIOLOGY
 		{
 			idx = i / 16;
 			int b = 2*(i - 16 * idx);
-			//cout << idx << b << " ";
 
 			if (s[i] == 'G')
 			{
@@ -1018,9 +1017,6 @@ namespace MICRO_BIOLOGY
 		std::string curr_amino = "";
 		for (int i = 0; i < 96; i++)
 		{
-			
-		//	for (int j = 0; j < 3; j++)
-			//{	
 				idx = i / 16;
 				int b =  2*(i - 16 * idx);
 
@@ -1052,10 +1048,7 @@ namespace MICRO_BIOLOGY
 
 					aminos.push_back(curr_amino);
 					curr_amino = "";
-
 				}
-		//	}
-			
 			
 		}
 
@@ -1063,11 +1056,6 @@ namespace MICRO_BIOLOGY
 
 
 		cout << endl;
-
-
-
-	
-
 
 		std::string am = "";
 		for (int i = 0; i < aminos.size(); i++)

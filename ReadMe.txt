@@ -2,6 +2,11 @@
     CONSOLE APPLICATION : Multi_Objective_Genetic_Algorithm Project Overview
 ========================================================================
 
+NOTE: The result is an individual whose gender dominant attributes are successful, and whose
+gender recessive attributes are also successful - they are good at gender stereotypical roles
+-e.g. because the individuals father is good at hunting and the mother is good at foraging, the 
+individual inherits the attributes from the parent.
+
 This simple C++ program computes a multi object hierarchical genetic algorrithm. 
 The heirarchy gene is simply male or female and this is implicit in the structure
 of the program (2 lists). Each pair of parents produce 1 male and 1 female offspring.
